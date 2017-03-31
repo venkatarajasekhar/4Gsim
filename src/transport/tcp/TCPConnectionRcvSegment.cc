@@ -29,6 +29,7 @@
 
 bool TCPConnection::tryFastRoute(TCPSegment *tcpseg)
 {
+    if(!tcpseg)
     // fast route processing not yet implemented
     return false;
 }
@@ -37,6 +38,8 @@ bool TCPConnection::tryFastRoute(TCPSegment *tcpseg)
 void TCPConnection::segmentArrivalWhileClosed(TCPSegment *tcpseg, IPvXAddress srcAddr, IPvXAddress destAddr)
 {
     tcpEV << "Seg arrived: ";
+    if(!tcpseg)
+        return;
     printSegmentBrief(tcpseg);
 
     // This segment doesn't belong to any connection, so this object
@@ -85,9 +88,14 @@ void TCPConnection::segmentArrivalWhileClosed(TCPSegment *tcpseg, IPvXAddress sr
 TCPEventCode TCPConnection::process_RCV_SEGMENT(TCPSegment *tcpseg, IPvXAddress src, IPvXAddress dest)
 {
     tcpEV << "Seg arrived: ";
+    if(tcpseg){
     printSegmentBrief(tcpseg);
     tcpEV << "TCB: " << state->info() << "\n";
-
+    }
+    else{
+     tcpEV << "Error Pointer"<< "\n"; 
+    }
+        
     if (rcvSeqVector)
         rcvSeqVector->record(tcpseg->getSequenceNo());
 
@@ -115,6 +123,7 @@ TCPEventCode TCPConnection::process_RCV_SEGMENT(TCPSegment *tcpseg, IPvXAddress 
     }
 
     delete tcpseg;
+    tcpseg = NULL;
     return event;
 }
 
@@ -125,7 +134,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
     //
 
     bool acceptable = true;
-
+    if(tcpseg){
     if (tcpseg->getHeaderLength() > TCP_HEADER_OCTETS) // Header options present? TCP_HEADER_OCTETS = 20
     {
         // PAWS
@@ -143,7 +152,9 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
 
         readHeaderOptions(tcpseg);
     }
-
+    }
+    else
+        tcpEV << "Error";
     if (acceptable)
         acceptable = isSegmentAcceptable(tcpseg);
 
